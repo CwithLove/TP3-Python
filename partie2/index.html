@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Drawing Board</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            text-align: center;
+            margin: 30px;
+        }
+
+        h1 {
+            color: #1e293b;
+        }
+
+        canvas {
+            background: white;
+            border: 2px solid #334155;
+            border-radius: 8px;
+        }
+
+        #status {
+            margin: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Interactive Drawing Board</h1>
+
+    <p id="status">Connecting...</p>
+
+    <canvas id="board" width="800" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById("board");
+        const ctx = canvas.getContext("2d");
+        const statusText = document.getElementById("status");
+
+        const ws = new WebSocket("ws://localhost:8080/ws");
+
+        ws.onopen = function() {
+            statusText.textContent = "Connected to server";
+            statusText.style.color = "green";
+        };
+
+        ws.onclose = function() {
+            statusText.textContent = "Disconnected from server";
+            statusText.style.color = "red";
+        };
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            drawShape(data);
+        };
+
+        function drawShape(data) {
+            const color = `rgb(${data.color.join(",")})`;
+
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+
+            if (data.shape === "point") {
+                ctx.beginPath();
+                ctx.arc(data.x, data.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            else if (data.shape === "line") {
+                ctx.beginPath();
+                ctx.moveTo(data.x1, data.y1);
+                ctx.lineTo(data.x2, data.y2);
+                ctx.stroke();
+            }
+
+            else if (data.shape === "circle") {
+                ctx.beginPath();
+                ctx.arc(data.x, data.y, data.radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            else if (data.shape === "rectangle") {
+                ctx.fillRect(
+                    data.x,
+                    data.y,
+                    data.width,
+                    data.height
+                );
+            }
+
+            else if (data.shape === "square") {
+                ctx.fillRect(
+                    data.x,
+                    data.y,
+                    data.cote,
+                    data.cote
+                );
+            }
+        }
+    </script>
+</body>
+</html>

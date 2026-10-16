@@ -1,0 +1,5 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.envpartie1/scores.json
